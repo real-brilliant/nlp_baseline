@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+# @auther: Geek_Fly
+# @date  : 2018/12/25
+
 import os
 import json
 import codecs
@@ -5,15 +9,20 @@ import jieba
 
 from collections import Counter
 
-data_path = '../data/'
-
 
 def get_word_freq(file_path):
-    ''' 统计文件出现的词频 '''
+    ''' 统计文件出现的词频 
+    
+    Args:
+        file_path: train、val、test文件所在目录
+
+    Returns:
+        token_counter: [dict]分词后词频统计结果
+    '''
     token_counter = Counter()
 
     for file_name in ['train.json', 'val.json', 'test.json']:
-        path = os.path.join(data_path, file_name)
+        path = os.path.join(file_path, file_name)
 
         with codecs.open(path, 'r', 'utf-8') as infs:
             for inf in infs:
@@ -27,12 +36,24 @@ def get_word_freq(file_path):
     return token_counter
 
 
-def get_embedding(token_counter, freq_threshold, embed_path, embed_dim):
-    ''' 读取词向量 '''
+def get_embedding(file_path, token_counter, freq_threshold, embed_path, embed_dim):
+    ''' 读取词向量 
+
+    Args:
+        file_path     : embedding文件所在目录
+        token_counter : [dict]分词后词频统计结果
+        freq_threshold: [int]词频最低阈值，低于此阈值的词不会进行词向量抽取
+        embed_path    : embedding文件名
+        embed_dim     : [int]词向量维度
+
+    Returns:
+        token2id : [dict]词转id的字典
+        embed_mat: [ListOfList]嵌入矩阵
+    '''
     embed_dict = {}
     filtered_elements = [k for k, v in token_counter.items() if v >= freq_threshold]
     
-    path = os.path.join(data_path, embed_path)
+    path = os.path.join(file_path, embed_path)
     with codecs.open(path, 'r', 'utf-8') as infs:
         for inf in infs:
             inf = inf.strip()
@@ -60,6 +81,3 @@ def get_embedding(token_counter, freq_threshold, embed_path, embed_dim):
 
     return token2id, embed_mat
 
-
-if __name__ == '__main__':
-    get_word_freq(data_path)
