@@ -18,7 +18,7 @@ def get_word_freq(file_path):
 
     Returns:
         token_counter: [dict]分词后词频统计结果
-    '''
+    ''' 
     token_counter = Counter()
 
     for file_name in ['train.json', 'val.json', 'test.json']:
@@ -36,14 +36,13 @@ def get_word_freq(file_path):
     return token_counter
 
 
-def get_embedding(file_path, token_counter, freq_threshold, embed_path, embed_dim):
+def get_embedding(embed_path, token_counter, freq_threshold, embed_dim):
     ''' 读取词向量 
 
     Args:
-        file_path     : embedding文件所在目录
+        embed_path    : embedding文件路径
         token_counter : [dict]分词后词频统计结果
         freq_threshold: [int]词频最低阈值，低于此阈值的词不会进行词向量抽取
-        embed_path    : embedding文件名
         embed_dim     : [int]词向量维度
 
     Returns:
@@ -53,8 +52,7 @@ def get_embedding(file_path, token_counter, freq_threshold, embed_path, embed_di
     embed_dict = {}
     filtered_elements = [k for k, v in token_counter.items() if v >= freq_threshold]
     
-    path = os.path.join(file_path, embed_path)
-    with codecs.open(path, 'r', 'utf-8') as infs:
+    with codecs.open(embed_path, 'r', 'utf-8') as infs:
         for inf in infs:
             inf = inf.strip()
             inf_list = inf.split()
@@ -75,7 +73,7 @@ def get_embedding(file_path, token_counter, freq_threshold, embed_path, embed_di
     embed_dict[unk] = [0. for _ in range(embed_dim)]
     embed_dict[pad] = [0. for _ in range(embed_dim)]
 
-    id2embed = {id: embed_dict[token] for token, idx in token2id.items()}
+    id2embed = {idx: embed_dict[token] for token, idx in token2id.items()}
 
     embed_mat = [id2embed[idx] for idx in range(len(id2embed))]
 
