@@ -211,7 +211,7 @@ def train(model, args, processor):
     # 数据&特征导入
     train_examples = processor.get_train_examples(args.data_path)
     train_features = convert_examples_to_features(
-        train_examples, label_list, args.embed_path, args.max_seq_length)
+        train_examples, label_list, args.embed_path, args.max_seq_length, show_example=True)
 
     num_train_steps = int(
         len(train_examples) / args.batch_size * args.epochs)
@@ -316,7 +316,7 @@ def test(model, args):
     label_list = processor.get_labels()
     test_examples = processor.get_dev_examples(args.data_path)
     test_features = convert_examples_to_features(
-        test_examples, label_list, args.embed_path, args.max_seq_length)
+        test_examples, label_list, args.embed_path, args.max_seq_length, show_example=True)
 
     all_input_ids = torch.tensor([f.input_ids for f in test_features], dtype=torch.long)
     all_re = torch.tensor([f.input_re for f in test_features], dtype=torch.long)
@@ -344,9 +344,14 @@ def test(model, args):
 
 def main():
     parser = argparse.ArgumentParser()
+    # 
+    parser.add_argument("--task",
+                        default = 'aDragon',
+                        type = str,
+                        help = "运行模式：aDragon/train/test")
     # 模型相关
     parser.add_argument("--model",
-                        default = 'FastText',
+                        default = 'FastTextHiddenF',
                         type = str,
                         help = "所使用的模型名称")
     parser.add_argument("--model_save_dir",
@@ -378,6 +383,10 @@ def main():
                         default = 15,
                         type = int,
                         help = "句子最大token数")
+    parser.add_argument("--feature_dim",
+                        default = 1,
+                        type = int,
+                        help = "特征位维度")
     parser.add_argument("--label_size",
                         default = 0,
                         type = int,
@@ -410,12 +419,15 @@ def main():
 
     args = parser.parse_args()
     
-    random.seed(args.seed)
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
-
-    if args.model not in ['FastText']:
+    # 检查部分配置是否正确
+    if args.task not in ['aDragon', 'train', 'test']:
+        raise Exception('incorrect task name.', args.task)
+    if args.model not in ['FastText', 'FastTextHiddenF']:
         raise Exception('incorrect model name.', args.model)
+    if not os.path.exists(args.model_save_dir):
+        os.makedirs(args.model_save_dir)
+    
+    # 配置[自动获取]参数
     # 根据processor修改label_size
     processor = MyPro()
     label_list = processor.get_labels()
@@ -423,20 +435,23 @@ def main():
     # 根据导入的embedding表修改vocab_size和embed_dim
     _, vectors = load_word_embedding(args.embed_path)
     args.vocab_size = len(vectors)
-    args.embed_dim = len(vectors[0])
-    # 检查model_save_dir是否存在
-    if not os.path.exists(args.model_save_dir):
-        os.makedirs(args.model_save_dir)
+    args.embed_dim = len(vectors[0])    
+
     # 准备模型
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
     model = getattr(models, args.model)(args, vectors)
     print(model)
-
+    
     # 开始训练
-    train(model, args, processor)
-
+    if args.task in ['aDragon', 'train']:
+        train(model, args, processor)
+    
     # 开始测试
-    f1 = test(model, args)
-    print('f1 score on test dataset is {}'.format(f1))
+    if args.task in ['aDragon', 'test']:    
+        f1 = test(model, args)
+        print('f1 score on test dataset is {}'.format(f1))
     
 
 if __name__ == '__main__':
