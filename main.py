@@ -351,7 +351,7 @@ def main():
                         help = "运行模式：aDragon/train/test")
     # 模型相关
     parser.add_argument("--model",
-                        default = 'FastTextHiddenF',
+                        default = 'BiGru',
                         type = str,
                         help = "所使用的模型名称")
     parser.add_argument("--model_save_dir",
@@ -422,8 +422,8 @@ def main():
     # 检查部分配置是否正确
     if args.task not in ['aDragon', 'train', 'test']:
         raise Exception('incorrect task name.', args.task)
-    if args.model not in ['FastText', 'FastTextHiddenF']:
-        raise Exception('incorrect model name.', args.model)
+    #if args.model not in ['FastText', 'FastTextHiddenF']:
+    #    raise Exception('incorrect model name.', args.model)
     if not os.path.exists(args.model_save_dir):
         os.makedirs(args.model_save_dir)
     

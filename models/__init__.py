@@ -4,4 +4,6 @@
 
 from .fast_text import FastText
 from .fast_text_hidden_F import FastTextHiddenF
+from .bigru import BiGru
+from .bigru_att import BiGruAtt
 
